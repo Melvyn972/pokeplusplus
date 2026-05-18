@@ -1,3 +1,5 @@
+import type { DecoratedPokemon } from "./decorator/pokemonDecorators";
+
 export type PokemonType =
   | "fire"
   | "water"
@@ -43,4 +45,11 @@ export interface RawPokemon {
 
 export interface TeamSlot {
   pokemon: Pokemon;
+}
+
+export interface SavedTeam {
+  id: string;
+  name: string;
+  pokemons: DecoratedPokemon[];
+  savedAt: number;
 }

@@ -70,4 +70,8 @@ export class CommandHistory {
   canUndo() {
     return this.stack.length > 0;
   }
+
+  clear() {
+    this.stack = [];
+  }
 }

@@ -2,6 +2,10 @@ import type { DecoratedPokemon } from "../decorator/pokemonDecorators";
 
 interface TeamPanelProps {
   team: DecoratedPokemon[];
+  teamName: string;
+  onTeamNameChange: (name: string) => void;
+  onSave: () => void;
+  canSave: boolean;
   onRemove: (id: number) => void;
   onUndo: () => void;
   canUndo: boolean;
@@ -9,11 +13,20 @@ interface TeamPanelProps {
 
 const MAX_TEAM_SIZE = 6;
 
-export function TeamPanel({ team, onRemove, onUndo, canUndo }: TeamPanelProps) {
+export function TeamPanel({
+  team,
+  teamName,
+  onTeamNameChange,
+  onSave,
+  canSave,
+  onRemove,
+  onUndo,
+  canUndo,
+}: TeamPanelProps) {
   const slots = Array.from({ length: MAX_TEAM_SIZE });
 
   return (
-    <aside className="w-72 shrink-0">
+    <div>
       <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm sticky top-6">
         <h2 className="font-bold text-gray-800 text-lg mb-1">Mon équipe</h2>
         <p className="text-xs text-gray-400 mb-4">{team.length} / {MAX_TEAM_SIZE} Pokémon</p>
@@ -60,16 +73,40 @@ export function TeamPanel({ team, onRemove, onUndo, canUndo }: TeamPanelProps) {
           </p>
         )}
 
+        <label className="block mt-4">
+          <span className="text-xs font-medium text-gray-500">Nom de l&apos;équipe</span>
+          <input
+            type="text"
+            value={teamName}
+            onChange={(event) => onTeamNameChange(event.target.value)}
+            className="mt-1 w-full text-sm py-2 px-3 rounded-lg border border-gray-200
+              focus:outline-none focus:border-red-300 focus:ring-1 focus:ring-red-200"
+            placeholder="équipe 1"
+          />
+        </label>
+
         <button
+          type="button"
+          onClick={onSave}
+          disabled={!canSave}
+          className="mt-3 w-full text-sm py-2 rounded-lg font-medium transition-colors
+            disabled:bg-gray-100 disabled:text-gray-300 disabled:cursor-not-allowed
+            bg-red-500 text-white hover:bg-red-600 cursor-pointer"
+        >
+          Sauvegarder
+        </button>
+
+        <button
+          type="button"
           onClick={onUndo}
           disabled={!canUndo}
-          className="mt-4 w-full text-sm py-2 rounded-lg font-medium transition-colors
+          className="mt-2 w-full text-sm py-2 rounded-lg font-medium transition-colors
             disabled:bg-gray-100 disabled:text-gray-300 disabled:cursor-not-allowed
             bg-gray-100 text-gray-600 hover:bg-gray-200 cursor-pointer"
         >
           ↩ Annuler
         </button>
       </div>
-    </aside>
+    </div>
   );
 }
