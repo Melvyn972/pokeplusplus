@@ -5,11 +5,18 @@ export function Notification() {
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    const unsub = teamEvents.on<string>("team:full", (msg) => {
+    function showMessage(msg: string) {
       setMessage(msg);
       setTimeout(() => setMessage(null), 3000);
-    });
-    return unsub;
+    }
+
+    const unsubFull = teamEvents.on<string>("team:full", showMessage);
+    const unsubSaved = teamEvents.on<string>("team:saved", showMessage);
+
+    return () => {
+      unsubFull();
+      unsubSaved();
+    };
   }, []);
 
   if (!message) return null;
