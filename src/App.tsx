@@ -6,11 +6,17 @@ import { PokemonApiAdapter } from "./adapter/PokemonApiAdapter";
 import { withPowerLevel, withLegendary } from "./decorator/pokemonDecorators";
 import { teamEvents } from "./observer/teamEvents";
 import { ByNameStrategy, ByTypeStrategy, BySortStrategy } from "./strategy/filterStrategies";
-import { AddPokemonCommand, RemovePokemonCommand, CommandHistory } from "./command/teamCommands";
+import {
+  AddPokemonCommand,
+  LoadSavedTeamCommand,
+  RemovePokemonCommand,
+  CommandHistory,
+} from "./command/teamCommands";
 import { FilterBar } from "./components/FilterBar";
 import { PokemonList } from "./components/PokemonList";
 import { TeamPanel } from "./components/TeamPanel";
 import { TeamSave } from "./components/TeamSave";
+import { TeamCompare } from "./components/TeamCompare";
 import { Notification } from "./components/Notification";
 import {
   deleteTeam,
@@ -89,9 +95,10 @@ function App() {
   }
 
   function handleLoadSavedTeam(saved: SavedTeam) {
-    setTeam([...saved.pokemons]);
-    history.current.clear();
-    setCanUndo(false);
+    const cmd = new LoadSavedTeamCommand(saved, () => teamRef.current, setTeam);
+    history.current.execute(cmd);
+    setCanUndo(history.current.canUndo());
+    teamEvents.emit<string>("team:loaded", `Équipe « ${saved.name} » chargée.`);
   }
 
   function handleDeleteSavedTeam(id: string) {
@@ -142,6 +149,7 @@ function App() {
             onLoad={handleLoadSavedTeam}
             onDelete={handleDeleteSavedTeam}
           />
+          <TeamCompare savedTeams={savedTeams} />
           <TeamPanel
             team={team}
             teamName={teamName}

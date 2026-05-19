@@ -1,4 +1,5 @@
 import type { DecoratedPokemon } from "../decorator/pokemonDecorators";
+import type { SavedTeam } from "../types";
 
 export interface Command {
   execute(): void;
@@ -48,6 +49,32 @@ export class RemovePokemonCommand implements Command {
 
   execute() {
     this.setTeam(this.getTeam().filter((p) => p.id !== this.id));
+  }
+
+  undo() {
+    this.setTeam(this.snapshot);
+  }
+}
+
+export class LoadSavedTeamCommand implements Command {
+  private snapshot: DecoratedPokemon[];
+  private savedTeam: SavedTeam;
+  getTeam: () => DecoratedPokemon[];
+  setTeam: (team: DecoratedPokemon[]) => void;
+
+  constructor(
+    savedTeam: SavedTeam,
+    getTeam: () => DecoratedPokemon[],
+    setTeam: (team: DecoratedPokemon[]) => void
+  ) {
+    this.savedTeam = savedTeam;
+    this.getTeam = getTeam;
+    this.setTeam = setTeam;
+    this.snapshot = [...getTeam()];
+  }
+
+  execute() {
+    this.setTeam([...this.savedTeam.pokemons]);
   }
 
   undo() {

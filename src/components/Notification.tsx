@@ -1,29 +1,53 @@
 import { useEffect, useState } from "react";
 import { teamEvents } from "../observer/teamEvents";
+import {
+  NotificationFactory,
+  type AppNotification,
+} from "../factory/NotificationFactory";
+
+const TEAM_EVENTS = [
+  "team:full",
+  "team:saved",
+  "team:loaded",
+  "team:compared",
+  "team:compare-error",
+] as const;
+
+const KIND_STYLES: Record<AppNotification["kind"], string> = {
+  success: "bg-green-600 text-white",
+  error: "bg-red-500 text-white",
+  info: "bg-blue-600 text-white",
+};
 
 export function Notification() {
-  const [message, setMessage] = useState<string | null>(null);
+  const [notification, setNotification] = useState<AppNotification | null>(null);
 
   useEffect(() => {
-    function showMessage(msg: string) {
-      setMessage(msg);
-      setTimeout(() => setMessage(null), 3000);
-    }
+    const timeouts: ReturnType<typeof setTimeout>[] = [];
 
-    const unsubFull = teamEvents.on<string>("team:full", showMessage);
-    const unsubSaved = teamEvents.on<string>("team:saved", showMessage);
+    const unsubscribers = TEAM_EVENTS.map((event) =>
+      teamEvents.on<string>(event, (payload) => {
+        const created = NotificationFactory.create(event, payload);
+        if (!created.message) return;
+        setNotification(created);
+        timeouts.push(setTimeout(() => setNotification(null), 3000));
+      })
+    );
 
     return () => {
-      unsubFull();
-      unsubSaved();
+      unsubscribers.forEach((unsub) => unsub());
+      timeouts.forEach(clearTimeout);
     };
   }, []);
 
-  if (!message) return null;
+  if (!notification) return null;
 
   return (
-    <div className="fixed bottom-6 right-6 bg-red-500 text-white px-4 py-3 rounded-xl shadow-lg text-sm font-medium animate-bounce">
-      {message}
+    <div
+      className={`fixed bottom-6 right-6 px-4 py-3 rounded-xl shadow-lg text-sm font-medium animate-bounce ${KIND_STYLES[notification.kind]}`}
+      role="status"
+    >
+      {notification.message}
     </div>
   );
 }
